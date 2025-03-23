@@ -11,38 +11,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1) Check out code
       - name: Check out code
         uses: actions/checkout@v2
 
+      # 2) Set up Java 17
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
+      # 3) Set up Docker Buildx
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Build Docker images
-        run: |
-          docker-compose build
+      # 4) Build containers
+      - name: Docker compose build
+        run: docker compose build
 
-      - name: Start containers
-        run: |
-          docker-compose up -d
+      # 5) Start containers in detached mode
+      - name: Docker compose up
+        run: docker compose up -d
 
-      - name: Wait for DB
+      # 6) Wait for MySQL
+      - name: Wait for MySQL
         run: |
-          # Retry for up to 30 seconds
+          # Try up to 30 seconds (15 tries * 2s)
           for i in {1..15}; do
+            # Exec into the container "ci_mysql_db" and ping MySQL
             if docker exec ci_mysql_db mysqladmin ping -ugolfuser -ppassword --silent; then
               echo "MySQL is ready!"
               exit 0
             fi
-            echo "MySQL not ready, retrying in 2s..."
+            echo "MySQL not ready, waiting..."
             sleep 2
           done
           echo "MySQL did not become ready in time."
           exit 1
 
-      - name: Build and test
-        run: |
-          mvn clean test
+      # 7) Maven build & test
+      - name: Maven build and test
+        run: mvn clean test
