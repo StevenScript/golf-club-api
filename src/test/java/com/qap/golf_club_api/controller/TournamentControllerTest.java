@@ -160,4 +160,46 @@ public class TournamentControllerTest {
         assertEquals(1, results.length);
         assertEquals("Pebble Beach", results[0].getLocation());
     }
+
+    @Test
+    void testGetAllMembersInTournament() {
+        // 1) Create a Tournament
+        Tournament t = new Tournament();
+        t.setStartDate("2024-10-01");
+        t.setEndDate("2024-10-05");
+        t.setLocation("TestCourse");
+        t.setEntryFee(200.0);
+        t.setCashPrizeAmount(8000.0);
+        var tournamentResp = restTemplate.postForEntity("/api/tournaments", t, Tournament.class);
+        Tournament savedTournament = tournamentResp.getBody();
+        assertNotNull(savedTournament);
+        assertNotNull(savedTournament.getId());
+
+        // 2) Create a Member & assign
+        com.qap.golf_club_api.model.Member m = new com.qap.golf_club_api.model.Member();
+        m.setMemberName("Erica");
+        m.setAddress("999 Golf Rd");
+        m.setEmailAddress("erica@example.com");
+        m.setPhoneNumber("555-9999");
+        m.setStartDateOfMembership("2024-01-01");
+        m.setDurationOfMembership("1 year");
+        var memberResp = restTemplate.postForEntity("/api/members", m, com.qap.golf_club_api.model.Member.class);
+        var savedMember = memberResp.getBody();
+        assertNotNull(savedMember);
+
+        // 3) Assign
+        restTemplate.postForEntity(
+                "/api/tournaments/" + savedTournament.getId() + "/members/" + savedMember.getId(),
+                null,
+                Void.class
+        );
+
+        // 4) GET /api/tournaments/{id}/members
+        var response = restTemplate.getForEntity("/api/tournaments/" + savedTournament.getId() + "/members", com.qap.golf_club_api.model.Member[].class);
+        assertEquals(200, response.getStatusCodeValue());
+        com.qap.golf_club_api.model.Member[] members = response.getBody();
+        assertNotNull(members);
+        assertEquals(1, members.length);
+        assertEquals("Erica", members[0].getMemberName());
+    }
 }

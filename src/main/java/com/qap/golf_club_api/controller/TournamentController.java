@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/tournaments")
@@ -66,5 +67,12 @@ public class TournamentController {
         }
         // fallback: return all tournaments if no param provided
         return tournamentRepository.findAll();
+    }
+
+    @GetMapping("/{id}/members")
+    public ResponseEntity<Set<Member>> getTournamentMembers(@PathVariable Long id) {
+        return tournamentRepository.findById(id)
+                .map(tournament -> ResponseEntity.ok(tournament.getParticipatingMembers()))
+                .orElse(ResponseEntity.notFound().build());
     }
 }
