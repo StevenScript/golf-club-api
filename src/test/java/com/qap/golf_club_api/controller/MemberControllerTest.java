@@ -4,6 +4,7 @@ package com.qap.golf_club_api.controller;
 
 import com.qap.golf_club_api.model.Member;
 import com.qap.golf_club_api.repository.MemberRepository;
+import com.qap.golf_club_api.repository.TournamentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +24,12 @@ public class MemberControllerTest {
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private TournamentRepository tournamentRepository;
+
     @BeforeEach
     void setup() {
+        tournamentRepository.deleteAll();
         memberRepository.deleteAll();
     }
 
