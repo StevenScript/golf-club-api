@@ -53,4 +53,18 @@ public class TournamentController {
         tournamentRepository.save(tournament);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/search")
+    public List<Tournament> searchTournaments(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String location
+    ) {
+        if (startDate != null) {
+            return tournamentRepository.findByStartDate(startDate);
+        } else if (location != null) {
+            return tournamentRepository.findByLocationContainingIgnoreCase(location);
+        }
+        // fallback: return all tournaments if no param provided
+        return tournamentRepository.findAll();
+    }
 }

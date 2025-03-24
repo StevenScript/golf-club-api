@@ -99,4 +99,65 @@ public class TournamentControllerTest {
         assertNotNull(updatedTournament);
         assertEquals(1, updatedTournament.getParticipatingMembers().size());
     }
+
+    @Test
+    void testSearchTournamentsByStartDate() {
+        // 1) Create Tournaments
+        Tournament t1 = new Tournament();
+        t1.setStartDate("2024-06-01");
+        t1.setEndDate("2024-06-05");
+        t1.setLocation("Pebble Beach");
+        t1.setEntryFee(200.0);
+        t1.setCashPrizeAmount(10000.0);
+        restTemplate.postForEntity("/api/tournaments", t1, Tournament.class);
+
+        Tournament t2 = new Tournament();
+        t2.setStartDate("2024-07-01");
+        t2.setEndDate("2024-07-05");
+        t2.setLocation("Augusta");
+        t2.setEntryFee(300.0);
+        t2.setCashPrizeAmount(15000.0);
+        restTemplate.postForEntity("/api/tournaments", t2, Tournament.class);
+
+        // 2) Search by start date = 2024-06-01
+        // We'll assume an endpoint like: /api/tournaments/search?startDate=2024-06-01
+        var response = restTemplate.getForEntity("/api/tournaments/search?startDate=2024-06-01", Tournament[].class);
+        assertEquals(200, response.getStatusCodeValue());
+
+        Tournament[] found = response.getBody();
+        assertNotNull(found);
+        assertEquals(1, found.length);
+        assertEquals("Pebble Beach", found[0].getLocation());
+    }
+
+    @Test
+    void testSearchTournamentsByLocation() {
+        // 1) Create Tournaments
+        Tournament t1 = new Tournament();
+        t1.setStartDate("2024-08-01");
+        t1.setEndDate("2024-08-05");
+        t1.setLocation("St Andrews");
+        t1.setEntryFee(250.0);
+        t1.setCashPrizeAmount(12000.0);
+        restTemplate.postForEntity("/api/tournaments", t1, Tournament.class);
+
+        Tournament t2 = new Tournament();
+        t2.setStartDate("2024-09-01");
+        t2.setEndDate("2024-09-05");
+        t2.setLocation("Pebble Beach");
+        t2.setEntryFee(350.0);
+        t2.setCashPrizeAmount(20000.0);
+        restTemplate.postForEntity("/api/tournaments", t2, Tournament.class);
+
+        // 2) Search by location containing "pebble"
+        // We'll assume: /api/tournaments/search?location=pebble
+        var response = restTemplate.getForEntity("/api/tournaments/search?location=pebble", Tournament[].class);
+        assertEquals(200, response.getStatusCodeValue());
+
+        Tournament[] results = response.getBody();
+        assertNotNull(results);
+        // Expect to find the "Pebble Beach" tournament
+        assertEquals(1, results.length);
+        assertEquals("Pebble Beach", results[0].getLocation());
+    }
 }
