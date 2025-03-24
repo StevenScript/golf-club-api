@@ -3,6 +3,7 @@ package com.qap.golf_club_api.controller;
 
 
 import com.qap.golf_club_api.model.Member;
+import com.qap.golf_club_api.model.Tournament;
 import com.qap.golf_club_api.repository.MemberRepository;
 import com.qap.golf_club_api.repository.TournamentRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -112,5 +113,50 @@ public class MemberControllerTest {
         assertNotNull(found);
         assertEquals(1, found.length);
         assertEquals("Charlie", found[0].getMemberName());
+    }
+
+    @Test
+    void testSearchMembersByTournamentStartDate() {
+        // 1) Create a new Tournament that starts 2023-10-01
+        Tournament t = new Tournament();
+        t.setStartDate("2023-10-01");
+        t.setEndDate("2023-10-05");
+        t.setLocation("TestCourse");
+        t.setEntryFee(100.0);
+        t.setCashPrizeAmount(5000.0);
+        ResponseEntity<Tournament> postTournament = restTemplate.postForEntity("/api/tournaments", t, Tournament.class);
+        Tournament savedTournament = postTournament.getBody();
+        assertNotNull(savedTournament);
+        assertNotNull(savedTournament.getId());
+
+        // 2) Create a Member
+        Member m = new Member();
+        m.setMemberName("Diana");
+        m.setAddress("777 Golf Rd");
+        m.setEmailAddress("diana@example.com");
+        m.setPhoneNumber("555-7777");
+        m.setStartDateOfMembership("2023-01-01");
+        m.setDurationOfMembership("1 year");
+        ResponseEntity<Member> postMember = restTemplate.postForEntity("/api/members", m, Member.class);
+        Member savedMember = postMember.getBody();
+        assertNotNull(savedMember);
+        assertNotNull(savedMember.getId());
+
+        // 3) Assign the Member to the Tournament
+        restTemplate.postForEntity(
+                "/api/tournaments/" + savedTournament.getId() + "/members/" + savedMember.getId(),
+                null,
+                Void.class
+        );
+
+        // 4) Search by tournament start date (2023-10-01)
+        // We'll assume the endpoint is /api/members/search?tournamentStart=2023-10-01
+        ResponseEntity<Member[]> response = restTemplate.getForEntity("/api/members/search?tournamentStart=2023-10-01", Member[].class);
+        assertEquals(200, response.getStatusCodeValue());
+
+        Member[] found = response.getBody();
+        assertNotNull(found);
+        assertEquals(1, found.length);
+        assertEquals("Diana", found[0].getMemberName());
     }
 }

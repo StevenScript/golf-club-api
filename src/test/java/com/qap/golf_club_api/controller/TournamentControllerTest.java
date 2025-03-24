@@ -1,6 +1,6 @@
 package com.qap.golf_club_api.controller;
 
-
+import com.qap.golf_club_api.model.Member;
 import com.qap.golf_club_api.model.Tournament;
 import com.qap.golf_club_api.repository.TournamentRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,23 +71,28 @@ public class TournamentControllerTest {
         assertNotNull(savedTournament.getId());
 
         // 2) Create a Member
-        com.qap.golf_club_api.model.Member m =
-                new com.qap.golf_club_api.model.Member(null, "Charlie", "123 Lane",
-                        "charlie@example.com", "555-1111", "2023-04-01", "1 year");
-        ResponseEntity<com.qap.golf_club_api.model.Member> memberResponse =
-                restTemplate.postForEntity("/api/members", m, com.qap.golf_club_api.model.Member.class);
-        com.qap.golf_club_api.model.Member savedMember = memberResponse.getBody();
+        Member m = new Member();
+        m.setMemberName("Charlie");
+        m.setAddress("123 Lane");
+        m.setEmailAddress("charlie@example.com");
+        m.setPhoneNumber("555-1111");
+        m.setStartDateOfMembership("2023-04-01");
+        m.setDurationOfMembership("1 year");
+
+        ResponseEntity<Member> memberResponse =
+                restTemplate.postForEntity("/api/members", m, Member.class);
+        Member savedMember = memberResponse.getBody();
         assertNotNull(savedMember);
         assertNotNull(savedMember.getId());
 
-        // 3) Assign
+        // 3) Assign member to the tournament
         restTemplate.postForEntity(
                 "/api/tournaments/" + savedTournament.getId() + "/members/" + savedMember.getId(),
                 null,
                 Void.class
         );
 
-        // 4) Verify the member is in the tournament
+        // 4) Verify the member is now in the tournament
         ResponseEntity<Tournament> getResponse =
                 restTemplate.getForEntity("/api/tournaments/" + savedTournament.getId(), Tournament.class);
         Tournament updatedTournament = getResponse.getBody();

@@ -39,14 +39,17 @@ public class MemberController {
     @GetMapping("/search")
     public List<Member> searchMembers(
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) String phone
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String tournamentStart
     ) {
-        if (name != null) {
+        if (tournamentStart != null) {
+            return memberRepository.findByTournamentStartDate(tournamentStart);
+        } else if (name != null) {
             return memberRepository.findByMemberNameContainingIgnoreCase(name);
         } else if (phone != null) {
             return memberRepository.findByPhoneNumberContaining(phone);
         }
-        // If no params provided, return all
+
         return memberRepository.findAll();
     }
 }
