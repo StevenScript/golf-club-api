@@ -53,4 +53,45 @@ public class TournamentControllerTest {
         assertNotNull(found);
         assertEquals("TPC Sawgrass", found.getLocation());
     }
+
+    @Test
+    void testAssignMemberToTournament() {
+        // 1) Create a Tournament
+        Tournament t = new Tournament();
+        t.setStartDate("2023-09-01");
+        t.setEndDate("2023-09-05");
+        t.setLocation("Some Course");
+        t.setEntryFee(500.0);
+        t.setCashPrizeAmount(30000.0);
+
+        ResponseEntity<Tournament> tournamentResponse =
+                restTemplate.postForEntity("/api/tournaments", t, Tournament.class);
+        Tournament savedTournament = tournamentResponse.getBody();
+        assertNotNull(savedTournament);
+        assertNotNull(savedTournament.getId());
+
+        // 2) Create a Member
+        com.qap.golf_club_api.model.Member m =
+                new com.qap.golf_club_api.model.Member(null, "Charlie", "123 Lane",
+                        "charlie@example.com", "555-1111", "2023-04-01", "1 year");
+        ResponseEntity<com.qap.golf_club_api.model.Member> memberResponse =
+                restTemplate.postForEntity("/api/members", m, com.qap.golf_club_api.model.Member.class);
+        com.qap.golf_club_api.model.Member savedMember = memberResponse.getBody();
+        assertNotNull(savedMember);
+        assertNotNull(savedMember.getId());
+
+        // 3) Assign
+        restTemplate.postForEntity(
+                "/api/tournaments/" + savedTournament.getId() + "/members/" + savedMember.getId(),
+                null,
+                Void.class
+        );
+
+        // 4) Verify the member is in the tournament
+        ResponseEntity<Tournament> getResponse =
+                restTemplate.getForEntity("/api/tournaments/" + savedTournament.getId(), Tournament.class);
+        Tournament updatedTournament = getResponse.getBody();
+        assertNotNull(updatedTournament);
+        assertEquals(1, updatedTournament.getParticipatingMembers().size());
+    }
 }

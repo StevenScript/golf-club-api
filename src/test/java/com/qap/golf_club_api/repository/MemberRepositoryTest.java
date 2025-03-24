@@ -1,7 +1,6 @@
 package com.qap.golf_club_api.repository;
 
 import com.qap.golf_club_api.model.Member;
-import com.qap.golf_club_api.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +14,13 @@ public class MemberRepositoryTest {
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private TournamentRepository tournamentRepository;
+
     @BeforeEach
     void setup() {
-        // Clean up the repository before each test
+        // Clean up the repositories before each test
+        tournamentRepository.deleteAll();
         memberRepository.deleteAll();
     }
 
